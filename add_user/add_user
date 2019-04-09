@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+
+$user=$ARGV[0];
+$passwd=$ARGV[1];
+$home=$ARGV[2];
+
+print "user=".$user."\n";
+print "password=".$passwd."\n";
+print "home=".$home."\n";
+
+@saltchars = (a .. z, A .. Z, 0 .. 9);
+ srand(time||$$);
+ $salt = $saltchars[rand($#saltchars)] . $saltchars[rand($#saltchars)];
+#print "$salt\t$row[1]\n";
+
+$encrypt_passwd = crypt($passwd,$salt);
+#print $encrypt_passwd."\n";
+
+$add_exec = "/usr/sbin/useradd -p ".$encrypt_passwd." -d ".$home." -m  ".$user;
+#$add_exec = "/usr/sbin/useradd ".$user;
+
+print $add_exec."\n";
+system($add_exec);  
