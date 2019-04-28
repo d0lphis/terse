@@ -48,3 +48,20 @@ set argv ""
 $ ps -ef|grep 1234
 root     22798     1  0 17:54 ?        00:00:00 ssh -o StrictHostKeyChecking no -D 1234 -N -f root@8.21.63.197
 
+
+
+
+
+
+# start ssh agent and add ssh key
+$ . ginit.sh ~/.ssh/id_rsa_git passphrase
+Agent pid 18224
+spawn ssh-add /root/.ssh/id_rsa_git
+Enter passphrase for /root/.ssh/id_rsa_git: 
+Identity added: /root/.ssh/id_rsa_git (/root/.ssh/id_rsa_git)
+
+$ ps -ef|grep ssh-agent
+root     18224     1  0 20:54 ?        00:00:00 ssh-agent -s
+
+$ ssh-add -l
+4096 SHA256:5miowIOEWGkdf+M5WEFM/gewmosdf//amfdsIOFEWmdlsfsdaogefHDF /root/.ssh/id_rsa_git (RSA)
