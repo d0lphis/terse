@@ -1,4 +1,5 @@
 # use expect style script
+<pre><code>
 $ ./tunnel_expect.sh 8.21.63.197 root Letmeon123 1234
 spawn ssh -o StrictHostKeyChecking no -D 1234 -N -f root@8.21.63.197
 parent: waiting for sync byte
@@ -18,12 +19,15 @@ expect: timed out
 
 $ ps -ef|grep 1234
 root     14071     1  0 16:09 ?        00:00:00 ssh -D 1234 -N -f root@8.21.63.197
+</pre></code>
+
 
 
 
 
 
 # use bash style script
+<pre><code>
 $ ./tunnel_bash.sh 8.21.63.197 root Letmeon123 1234
 spawn ssh -o StrictHostKeyChecking no -D 1234 -N -f root@8.21.63.197
 parent: waiting for sync byte
@@ -47,6 +51,7 @@ set argv ""
 
 $ ps -ef|grep 1234
 root     22798     1  0 17:54 ?        00:00:00 ssh -o StrictHostKeyChecking no -D 1234 -N -f root@8.21.63.197
+</pre></code>
 
 
 
@@ -54,6 +59,7 @@ root     22798     1  0 17:54 ?        00:00:00 ssh -o StrictHostKeyChecking no 
 
 
 # start ssh agent and add ssh key
+<pre><code>
 $ . ginit.sh ~/.ssh/id_rsa_git passphrase
 Agent pid 18224
 spawn ssh-add /root/.ssh/id_rsa_git
@@ -65,3 +71,4 @@ root     18224     1  0 20:54 ?        00:00:00 ssh-agent -s
 
 $ ssh-add -l
 4096 SHA256:5miowIOEWGkdf+M5WEFM/gewmosdf//amfdsIOFEWmdlsfsdaogefHDF /root/.ssh/id_rsa_git (RSA)
+</pre></code>
