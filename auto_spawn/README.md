@@ -12,7 +12,8 @@ latest: spawn rsync from remote to current host, or current to remote host.
 
 #$ ssh 8.21.49.57 ls -l --time-style='+%Y%m%d' /source/file | awk '{print $6}'
 #$ ssh 8.21.49.57 ls -l --time-style=+%Y%m%d /source/file | awk '{print $6}'
-#$ var=$(./aspawn.sh password "ssh 8.21.49.57 ls -l --time-style=+%Y%m%d /source/file | awk '{print \$6}'"|tail -1)
+#$ var=$(./aspawn.sh password "ssh 8.21.49.57 ls -l --time-style=+%Y%m%d /source/file | awk '{print \$6}'" | tail -1 | tr -cd '\11\12\40-\176')
+#$ echo $var | cat -v
 #$ ./aspawn.sh password "ssh 8.21.49.57 ls -l --time-style=+%Y%m%d /source/file | awk '{print \$6}'"
-#$ ./aspawn.sh password "rsync -av --progress root@8.21.49.57:/source/file /destination"
-#$ ./aspawn.sh password "rsync -av --progress /source/file root@8.111.254.192:/destination"
+#$ ./aspawn.sh password "rsync -av --progress root@8.21.49.57:/source/file /destination/"
+#$ ./aspawn.sh password "rsync -av --progress /source/file root@8.111.254.192:/destination/"
