@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#search in all jars under current path recursively, list if file contained has name like "Resources.properties", and the file contain text like "The message to match"
+#search in all jars under current path recursively, list if file contained has name like "Resources.properties", list if the file contain text like "The message to match"
 #./ArchiveGrep.sh . "Resources.properties" "The message to match"
 #   ./ops-abs.jar
 #      com/company/ops/view/web/Resources.properties
