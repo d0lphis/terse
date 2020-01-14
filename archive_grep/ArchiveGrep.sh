@@ -49,6 +49,7 @@ for out in grep $output; do
 			if [ "$sArchiveName" != "$sLastArchiveName" ]; then
 				echo "   "$sArchiveName
 				sLastArchiveName="$sArchiveName"
+				sLastArchiveFileName=
 			fi
 		else
 			#${mArchives["$sArchiveName"]}[i]="$out"
