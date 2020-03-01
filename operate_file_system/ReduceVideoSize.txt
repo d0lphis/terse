@@ -1,0 +1,1 @@
+C:\D\por\ffmpeg-20190826-0821bc4-win64-static\bin\ffmpeg.exe -threads 12 -i a_2.mp4 -b:v 500k -s 672x378 -r 23.976 -vcodec libx264 -coder 1 -refs 5 -acodec copy a2.mp4
