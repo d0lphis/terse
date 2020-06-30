@@ -1,0 +1,69 @@
+#!/bin/bash
+
+#flatten nested archive(compressed tar ball in in compressed tar bar)
+#$ ls
+#  a.tar.gz
+#$ tar -tvf a.tar.gz
+#  drwxr-xr-x root/root         0 0000-00-00 23:28 x/
+#  drwxr-xr-x root/root         0 0000-00-00 22:53 x/y/
+#  -rw-r--r-- root/root       855 0000-00-00 22:53 x/y/deployment.xml
+#  -rw-r--r-- root/root       402 0000-00-00 22:53 x/a.tar.gz
+#  -rw-r--r-- root/root       855 0000-00-00 22:52 x/deployment.xml
+#$ ./archive_flat.sh a.tar.gz b.tar.gz
+#$ ls
+#  a.tar.gz  b.tar.gz
+#$ tar -tvf b.tar.gz
+#  drwxr-xr-x root/root         0 0000-00-00 01:21 x/
+#  drwxr-xr-x root/root         0 0000-00-00 01:21 x/[a.tar.gz]/
+#  drwxr-xr-x root/root         0 0000-00-00 22:52 x/[a.tar.gz]/x/
+#  drwxr-xr-x root/root         0 0000-00-00 22:53 x/[a.tar.gz]/x/y/
+#  -rw-r--r-- root/root       855 0000-00-00 22:53 x/[a.tar.gz]/x/y/deployment.xml
+#  -rw-r--r-- root/root       855 0000-00-00 22:52 x/[a.tar.gz]/x/deployment.xml
+#  drwxr-xr-x root/root         0 0000-00-00 22:53 x/y/
+#  -rw-r--r-- root/root       855 0000-00-00 22:53 x/y/deployment.xml
+#  -rw-r--r-- root/root       855 0000-00-00 22:52 x/deployment.xml
+
+
+
+archive="$1"
+#new_archive="$2"
+keyword="$2"
+
+# common extensions, full list at
+# http://www.gnu.org/software/tar/manual/html_section/Compression.html#auto_002dcompress
+match_archives='.*\.\(tar\|\(tar\.\(gz\|bz2\|xz\)\)\|\(tgz\|tbz\)\)$'
+
+function rexpand(){
+        retval=0
+        while read -rd '' path; do
+                if [ -e "$path" ]; then
+                        nested_archive=${path##*/}
+                        #if cd "${path%/*}" && tar -xakf "$nested_archive"; then
+			#archive_container=${nested_archive//\./_}
+			archive_container="[${nested_archive}]"
+                        if cd "${path%/*}" && mkdir "$archive_container" && tar -xakf "$nested_archive" -C "$archive_container"; then
+                                rm "$nested_archive"
+                                find . -regex "$match_archives" -print0 | rexpand
+                                retval=$?
+                        else
+                                echo "Error extracting $nested_archive, not removing"
+                                retval=1
+                        fi
+                fi
+        done
+        return $retval
+}
+
+tmpdir=$(mktemp -d) 
+cd "$tmpdir"
+
+#tar -xaf "$OLDPWD/$archive" &&
+tar -xaf "$archive" &&
+	find . -regex "$match_archives" -print0 | rexpand &&
+	#tar -caf "$OLDPWD/$new_archive" * &&
+	grep $keyword . -nR &&
+	#result=$(grep $keyword . -nR) &&
+	#while read line; do echo "  ${line}"; done < <(echo "$result") &&
+	cd -- "$OLDPWD" &&
+	rm -rf $tmpdir ||
+	echo "Errors, please review $tmpdir"
