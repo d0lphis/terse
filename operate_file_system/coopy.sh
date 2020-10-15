@@ -44,9 +44,11 @@ find $templateSrcPath -type f -print0 | while IFS= read -r -d '' file; do
     #echo $sourceFile
     destFile=$(echo "$file" | sed s@$templateSrcPath@$destSrcFolder@)
     destFileDir=$(dirname "$destFile")
-    if [ ! -f "$sourceFile" ]; then
-        constructFile "$templateFile" "$destFile" "self source"
+    if [ -f "$sourceFile" ]; then
+     	constructFile "$sourceFile" "$destFile" "open source"
     else
-        constructFile "$sourceFile" "$destFile" "open source"
+	if [ -z "$4" && "$4" == "copylack" ]; then
+            constructFile "$templateFile" "$destFile" "self source"
+	fi
     fi
 done
