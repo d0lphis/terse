@@ -1,6 +1,11 @@
 #!/usr/bin/expect -f
 # exp_internal 1    ;# uncomment to turn on expect debugging
 
+# usage: ./async.sh 8.30.204.204 "" root password /wks/kode/wksp/project/subprojects/db/build/ /mnt/build/
+#        ./async.sh "" 8.30.204.204 root password /mnt/build/ /wks/kode/wksp/project/subprojects/db/build/
+#        ./async.sh 8.30.204.204 "" root password /wks/kode/wksp/project/subprojects/db/build/a.tar.gz /mnt/build/a.tar.gz
+#        ./async.sh "" 8.30.204.204 "" root password /mnt/build/a.tar.gz /wks/kode/wksp/project/subprojects/db/build/a.tar.gz
+
 
 
 set source_hostname [lindex $argv 0]
