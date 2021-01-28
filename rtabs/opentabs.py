@@ -1,8 +1,13 @@
 #! /usr/bin/python3
-import os, sys, re
+import os, sys, re, platform, io
+reload(sys)
+sys.setdefaultencoding('gb2312')
 
 
 
+#prototype:
+#os.system("open -na /Applications/Firefox.app --args --new-window -url http://www.baidu.com -url https://www.163.com")
+#os.system(r'"C:\Program Files\Mozilla Firefox\firefox.exe" --args --new-window -url http://www.baidu.com -url https://www.163.com')
 #usage:
 #1. drag similar topic of tabs to one window
 #2. bookmark all tabs in the window
@@ -17,6 +22,7 @@ import os, sys, re
 #https://reddit.com
 #5. try restore from surls.txt, topic related urls are opened in a new window as specified browser type
 # python opentabs.py firefox surls.txt ______routine_affair_a
+# python opentabs.py firefox surls.txt ______routine_affair_a 10
 # python opentabs.py firefoxd surls.txt ______org_project_a
 # python opentabs.py chromium surls.txt ______patent_topic_a
 # python opentabs.py chrome surls.txt ______global_topic_a
@@ -36,7 +42,8 @@ import os, sys, re
 
 inRecordingMode = False
 urls = ""
-with open(sys.argv[2], 'r') as file:
+i = 1
+with io.open(sys.argv[2], 'r', encoding='utf-8') as file:
     for line in file:
         line = line.split(' ', 1)[0].split("\t", 1)[0]
         if not inRecordingMode:
@@ -46,22 +53,34 @@ with open(sys.argv[2], 'r') as file:
             inRecodingMode = False
             break
         else:
-            urls += " '" + line.replace('\r', ' ').replace('\n', ' ').rstrip() + "' "
+            if len(sys.argv) == 5:
+                if i > int(sys.argv[4]):
+                    break
+            urls += " " + line.replace('\r', ' ').replace('\n', ' ').rstrip() + " "
+            i += 1
 
 urls = re.sub(' +', ' ', urls).rstrip().replace(' ', ' -url ')
 print urls
-exit()
+#exit()
 
-
-
-browserTypes = {
-    "firefox": "/Applications/Firefox.app",
-    "firefoxd": "/Applications/Firefox\ Developer\ Edition.app",
-    "chrome": "/Applications/Google\ Chrome.app",
-    "chromium": "/Applications/Chromium.app",
-    "vivaldi": "/Applications/Vivaldi.app"
-}
-
-
-
-os.system("open -na " + browserTypes[sys.argv[1]] + " --args --new-window " + urls)
+if platform.system() == 'Darwin':
+    browserTypes = {
+        "firefox": "/Applications/Firefox.app",
+        "firefoxd": "/Applications/Firefox\ Developer\ Edition.app",
+        "chrome": "/Applications/Google\ Chrome.app",
+        "chromium": "/Applications/Chromium.app",
+        "vivaldi": "/Applications/Vivaldi.app"
+    }
+    os.system("open -na " + browserTypes[sys.argv[1]] + " --args --new-window " + urls)
+elif platform.system() == 'Windows':
+    browserTypes = {
+        "firefox": r"C:\Program Files\Mozilla Firefox\firefox.exe",
+        "firefoxd": r"C:\Program Files\Mozilla Firefox Developer\firefox.exe",
+        "chrome": r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        "chromium": r"C:\Program Files (x86)\Google\Chromium\Application\chromium.exe",
+        "vivaldi": r"C:\Program Files (x86)\Vivaldi\Vivaldi.app",
+        "opera": r"C:\Users\Will\AppData\Local\Programs\Opera\launcher.exe",
+        "edge": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    }
+    c = "\"" + browserTypes[sys.argv[1]] + "\" --args --new-window " + urls
+    os.system(r''+c+'')
