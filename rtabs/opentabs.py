@@ -38,6 +38,7 @@ inRecordingMode = False
 urls = ""
 with open(sys.argv[2], 'r') as file:
     for line in file:
+        line = line.split(' ', 1)[0].split("\t", 1)[0]
         if not inRecordingMode:
             if line.startswith(sys.argv[3]):
                 inRecordingMode = True
@@ -49,7 +50,7 @@ with open(sys.argv[2], 'r') as file:
 
 urls = re.sub(' +', ' ', urls).rstrip().replace(' ', ' -url ')
 print urls
-#exit()
+exit()
 
 
 
