@@ -8,6 +8,8 @@ sys.setdefaultencoding('gb2312')
 #prototype:
 #os.system("open -na /Applications/Firefox.app --args --new-window -url http://www.baidu.com -url https://www.163.com")
 #os.system(r'"C:\Program Files\Mozilla Firefox\firefox.exe" --args --new-window -url http://www.baidu.com -url https://www.163.com')
+# TODO: open urls by firefox and specify limit 1, will open url in existing firefox window, other browser works fine to open in new window
+# TODO: on Windows platform, suspend to use, due to url escape trouble for & = | etc, that conflicting as shell operator
 #usage:
 #1. drag similar topic of tabs to one window
 #2. bookmark all tabs in the window
@@ -78,7 +80,7 @@ elif platform.system() == 'Windows':
         "firefoxd": r"C:\Program Files\Mozilla Firefox Developer\firefox.exe",
         "chrome": r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
         "chromium": r"C:\Program Files (x86)\Google\Chromium\Application\chromium.exe",
-        "vivaldi": r"C:\Program Files (x86)\Vivaldi\Vivaldi.app",
+        "vivaldi": r"C:\Program Files (x86)\Vivaldi\Vivaldi.exe",
         "opera": r"C:\Users\Will\AppData\Local\Programs\Opera\launcher.exe",
         "edge": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
     }
