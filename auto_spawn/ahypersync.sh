@@ -15,14 +15,15 @@ set password [lindex $argv 3]
 set source_folder_path [lindex $argv 4]
 set source_folder_name [lindex $argv 5]
 set destination_folder_path [lindex $argv 6]
-
+puts "$source_folder_path"
 
 set timeout -1
 
 if { $source_hostname != "" } {
   spawn ssh $username@$source_hostname "pushd $source_folder_path && rm -rf ${source_folder_name}.tar.gz && tar -cvzf ${source_folder_name}.tar.gz $source_folder_name && popd"
 } else {
-  pushd $source_folder_path && rm -rf ${source_folder_name}.tar.gz && tar -cvzf ${source_folder_name}.tar.gz $source_folder_name && popd
+  spawn bash
+  send "pushd $source_folder_path && rm -rf ${source_folder_name}.tar.gz && tar -cvzf ${source_folder_name}.tar.gz $source_folder_name && popd && exit\r"
 }
 
 expect {
