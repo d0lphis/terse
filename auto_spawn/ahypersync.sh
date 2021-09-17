@@ -2,9 +2,9 @@
 # exp_internal 1    ;# uncomment to turn on expect debugging
 
 # usage: ./ahypersync.sh 8.30.204.204 "" root password /wks/kode/wksp/project/subprojects/db/build/ reports /mnt/
-#        this will go to remote /wks/kode/wksp/project/subprojects/db/build/, compress folder reports to reports.tar.gz, then rsync it back as local /mnt/reports.tar.gz
+#        this will go to remote /wks/kode/wksp/project/subprojects/db/build/, compress folder reports to reports.tar.gz, then rsync it back as /mnt/reports.tar.gz
 #       ./ahypersync.sh "" 8.30.204.204 root password /mnt/ reports /wks/kode/wksp/project/subprojects/db/build/
-#        this will got to local /mnt/, compress folder reports to reports.tar.gz, then rsync it to remote as local /wks/kode/wksp/project/subprojects/db/build/reports.tar.gz
+#        this will go to local /mnt/, compress folder reports to reports.tar.gz, then rsync it to remote as /wks/kode/wksp/project/subprojects/db/build/reports.tar.gz
 
 
 
@@ -39,7 +39,7 @@ expect {
     send "$password\r"
   }
 }
-expect EOF
+#expect EOF
 
 
 if { $source_hostname != "" } {
