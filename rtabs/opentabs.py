@@ -54,6 +54,8 @@ with io.open(sys.argv[2], 'r', encoding='utf-8') as file:
         elif line.startswith('______'):
             inRecodingMode = False
             break
+        elif line.startswith('#'):
+            continue
         else:
             if len(sys.argv) == 5:
                 if i > int(sys.argv[4]):

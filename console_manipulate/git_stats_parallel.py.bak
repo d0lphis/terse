@@ -1,0 +1,502 @@
+# coding=utf-8
+
+# $ python git_stats.py -p /code/rwksp -e   #fetch, stat
+# $ python git_stats.py -p /code/rwksp -r   #stash, fetch rebase, stash pop, stat
+# elasticsearch-7_10                                           7.10                                     √
+# etcd-release_3_4                                             release-3.4                              ▲10
+# gita                                                         master                                   ▼16
+# hf-hf_trunk                                                  hf_trunk                                 ▲23▼1
+# spark-master                                                 master                                   √ ^
+# tflow-r_2_4                                                  r2.4                                     ▲8 ^
+# api                                                          master                                   ▼29 ^
+# wkc-glossary-service-master                                  will_dev                                 ▲274▼12 ^
+
+from __future__ import print_function
+import os, sys, time, re, argparse, subprocess, signal
+from outputs import *
+
+
+
+rows, columns = os.popen('stty size', 'r').read().split()
+
+
+
+LIGHT_RED='\033[1;31m'
+RED='\033[1;31m'
+BOLD_RED='\033[1m\033[31m'
+
+LIGHT_YELLOW='\033[0;33m'
+YELLOW='\033[1;33m'
+BOLD_YELLOW='\033[1m\033[33m'
+
+LIGHT_GREEN='\033[1;32m'
+GREEN='\033[0;32m'
+BOLD_GREEN='\033[1m\033[32m'
+
+LIGHT_CYAN='\033[1;36m'
+CYAN='\033[1;36m'
+BOLD_CYAN='\033[1m\033[36m'
+
+PURPLE='\033[0;35m'
+LIGHT_PURPLE='\033[1;35m'
+BOLD_PURPLE='\033[1m\033[35m'
+
+LIGHT_GRAY='\033[0;37m'
+
+LIGHT_BLACK='\033[0;30m'
+
+NC='\033[0m'
+
+STAT_FORMAT="%b%7s%b %-34s"
+
+ACT_SYMBOL='●'
+#⬤⚪⚫🌑⭕🔴🔵〇🔘➰⧭⓿⓪🄋⓵ⓐ🅐Ⓐ
+#●◯○⚬•∙
+#◓◑◒◐◷◶◴◵◔◕
+#⨀⚆⚇⚈⚉⦾⦿◉✪◌❂⦻⊛☢❍☸❏❐❑❒
+#〶⨁⨂⊝⊖⊜⦶⦷◍⦸⊘⦹⦺◖◗
+#◙◚◛⧇◠◡⟟⫱⧲⧳⦲∅⦵⧂⧃◜◝◞◟
+#🌑🌒🌓🌔🌕🌖🌗🌘
+#🌕🌖🌗🌘🌑🌒🌓🌔🌕
+
+#http://www.i2symbol.com/symbols/style-letters
+#🍀🌿🌵🍃🌱🌾🍂🍁🌺🌸🌹🌷💐🍇🌻🏵🌼💮⚾⚽🏀🏈🎾🎱🚩💯🍺🍹🍻🍷🍸🍵🎺🎻🎷🎸🌟💫🔥💧🌊🌀🌈🍥🍭
+#☕ℱℋℌℒ℘ℛ℟℣ℬℭℰℳℵ☡ℴℏℊ℔
+import itertools
+
+# for c in itertools.cycle(['|', '/', '-', '\\']):
+# for c in itertools.cycle(['⬍', '⬈', '➞', '⬊', '⬍', '⬋', '⬅', '⬉']):
+# for c in itertools.cycle(['◜', '◝', '◞', '◟']):
+#
+# for c in itertools.cycle(['.', '..', '...']):
+# for c in itertools.cycle(['.', '..', '...', '..']):
+#
+# for c in itertools.cycle(['.', 'o', 'O', '@', '*']):
+# for c in itertools.cycle(['⚆', '⚇', '◌']):
+# for c in itertools.cycle(['☘', '❀', '❁', '❀']):
+# for c in itertools.cycle(['⁎', '⁑', '⁂', '⁑']):
+# for c in itertools.cycle(['◇', '◈', '◆']):
+#
+# for c in itertools.cycle(['┤', '┘', '┴', '└', '├', '┌', '┬', '┐']):
+# for c in itertools.cycle(['◓', '◑', '◒', '◐']):
+# for c in itertools.cycle(['⊖', '⦸', '⦶', '⊘']):
+# for c in itertools.cycle(['▖', '▘', '▝', '▗']):
+# for c in itertools.cycle(['◢', '◣', '◤', '◥']):
+# for c in itertools.cycle(['◴', '◷', '◶', '◵']):
+# for c in itertools.cycle(['◰', '◳', '◲', '◱']):
+# for c in itertools.cycle(['▌', '▀', '▐', '▄']):
+# for c in itertools.cycle(['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷']):
+# for c in itertools.cycle(['⠁', '⠂', '⠄', '⡀', '⢀', '⠠', '⠐', '⠈']):
+# for c in itertools.cycle(['⡀', '⡁', '⡂', '⡃', '⡄', '⡅', '⡆', '⡇', '⡈', '⡉', '⡊', '⡋', '⡌', '⡍', '⡎', '⡏', '⡐', '⡑', '⡒', '⡓', '⡔', '⡕', '⡖', '⡗', '⡘', '⡙', '⡚', '⡛', '⡜', '⡝', '⡞', '⡟', '⡠', '⡡', '⡢', '⡣', '⡤', '⡥', '⡦', '⡧', '⡨', '⡩', '⡪', '⡫', '⡬', '⡭', '⡮', '⡯', '⡰', '⡱', '⡲', '⡳', '⡴', '⡵', '⡶', '⡷', '⡸', '⡹', '⡺', '⡻', '⡼', '⡽', '⡾', '⡿', '⢀', '⢁', '⢂', '⢃', '⢄', '⢅', '⢆', '⢇', '⢈', '⢉', '⢊', '⢋', '⢌', '⢍', '⢎', '⢏', '⢐', '⢑', '⢒', '⢓', '⢔', '⢕', '⢖', '⢗', '⢘', '⢙', '⢚', '⢛', '⢜', '⢝', '⢞', '⢟', '⢠', '⢡', '⢢', '⢣', '⢤', '⢥', '⢦', '⢧', '⢨', '⢩', '⢪', '⢫', '⢬', '⢭', '⢮', '⢯', '⢰', '⢱', '⢲', '⢳', '⢴', '⢵', '⢶', '⢷', '⢸', '⢹', '⢺', '⢻', '⢼', '⢽', '⢾', '⢿', '⣀', '⣁', '⣂', '⣃', '⣄', '⣅', '⣆', '⣇', '⣈', '⣉', '⣊', '⣋', '⣌', '⣍', '⣎', '⣏', '⣐', '⣑', '⣒', '⣓', '⣔', '⣕', '⣖', '⣗', '⣘', '⣙', '⣚', '⣛', '⣜', '⣝', '⣞', '⣟', '⣠', '⣡', '⣢', '⣣', '⣤', '⣥', '⣦', '⣧', '⣨', '⣩', '⣪', '⣫', '⣬', '⣭', '⣮', '⣯', '⣰', '⣱', '⣲', '⣳', '⣴', '⣵', '⣶', '⣷', '⣸', '⣹', '⣺', '⣻', '⣼', '⣽', '⣾', '⣿']):
+#
+# for c in itertools.cycle(['▏', '▎', '▍', '▌', '▋', '▊', '▉', '▊', '▋', '▌', '▍', '▎', '▏']):
+# for c in itertools.cycle(['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▁']):
+# for c in itertools.cycle(['▉', '▊', '▋', '▌', '▍', '▎', '▏', '▎', '▍', '▌', '▋', '▊', '▉']):
+# for c in itertools.cycle(['︷', '︵', '︹', '︺', '︶', '︸', '︶', '︺', '︹', '︵']):
+# for c in itertools.cycle(['◡◡', '⊙⊙', '◠◠']):
+# for c in itertools.cycle(['🕛', '🕧', '🕐', '🕜', '🕑', '🕝', '🕒', '🕞', '🕓', '🕟', '🕔', '🕠', '🕕', '🕡', '🕖', '🕢', '🕗', '🕣', '🕘', '🕤', '🕙', '🕥', '🕚', '🕦']):
+# for c in itertools.cycle(['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘']):
+#   sys.stdout.write('\rloading ' + c + ' ' + c + ' ' + c + ' ' + c + ' ' + c + ' ' + c + ' ' + c + ' ' + c + ' ')
+#   sys.stdout.flush()
+#   time.sleep(0.1)
+
+# sys.exit()
+
+parser=argparse.ArgumentParser()
+parser.add_argument('-t', '--target', help='branch@remote to check, e.g master@{u}, master@{upstream}')
+parser.add_argument('-p', '--repobase', help='path that contains repos')
+parser.add_argument('-e', '--withfetch', action='store_true', help='fetch before stats')
+parser.add_argument('-r', '--withrebase', action='store_true', help='stash, fetch, rebase, stash pop, before stats')
+# parser.add_argument('-b', '--branch', help='local branch to check')
+args=parser.parse_args()
+# if args.target:
+#   print("remote repo: % s" % args.target)
+# if args.repobase:
+#   print("remote repo: % s" % args.repobase)
+
+
+
+def start_process(cmd):
+  p=subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  return p
+
+def parse_process_output(p):
+  o=p.communicate()
+  return {
+    'out':str(o[0]),
+    'err':str(o[1]),
+    'cod':str(p.returncode)
+  }
+
+def test_res_of_exec(cmd):
+  res=parse_process_output(cmd)
+  o=res['out']
+  e=res['err']
+  c=res['cod']
+  # sys.stdout.write(o)
+  # sys.stdout.write(e)
+
+  # if o != "None":
+  #   res="√"
+  # if e != "None":
+  #   res="x"
+  sys.stdout.write(c)
+
+# test_res_of_exec('git pull upstream spark_trunk')
+# sys.exit()
+
+def get_stat_by_git_rev():
+  UPSTREAM='@{u}' if len(sys.argv) <= 1 else sys.argv[2]
+  LOCAL=parse_process_output('git rev-parse @')['out']
+  REMOTE=parse_process_output('git rev-parse '+UPSTREAM)['out']
+  BASE=parse_process_output('git merge-base @ '+UPSTREAM)['out']
+  sys.stdout.write(BOLD_RED + UPSTREAM + NC + '\n')
+  sys.stdout.write(BOLD_GREEN + LOCAL + NC)
+  sys.stdout.write(BOLD_CYAN + REMOTE + NC)
+  sys.stdout.write(BOLD_PURPLE + BASE + NC)
+
+  if LOCAL == REMOTE:
+    sys.stdout.write(BOLD_GREEN+'        ✓ '+NC+' up to date (local remote the same)')
+  elif LOCAL == BASE:
+    sys.stdout.write(BOLD_PURPLE+' ▼ '+NC+' behind (others\' changes on upstream repo )')
+  elif REMOTE == BASE:
+    sys.stdout.write(BOLD_CYAN+'         ▲ '+NC+' ahead (self changes committed to local repo)')
+  else:
+    sys.stdout.write(BOLD_RED+'          ✗ '+NC+' diverged (both local and remote have changes)')
+
+def get_stat_by_git_status():
+  o=parse_process_output('git status')['out']
+  out=None
+  try:
+    if 'Your branch is up to date' in o:
+      # Your branch is up to date
+      # print('{:8}'.format('✓'))             #✘
+      out=BOLD_GREEN+'√'+NC
+    elif 'Your branch is behind' in o:
+      #Your branch is behind 'upstream/release-wkc-cypress' by 1 commit, and can be fast-forwarded.
+      found=re.search('.*Your branch is behind .* (\d+) commit.*', o)
+      # print('▼{:7}'.format(found.group(1))) #⬇
+      out=BOLD_PURPLE+'▼'+found.group(1)+NC
+    elif 'Your branch is ahead of' in o:
+      #Your branch is ahead of 'upstream/master' by 1 commit.
+      found=re.search('.*Your branch is ahead of .* by (\d+) commit.*', o)
+      # print('▲{:7}'.format(found.group(1))) #⬆
+      out=BOLD_CYAN+'▲'+found.group(1)+NC
+    elif 'have diverged' in o:
+      #Your branch and 'upstream/master' have diverged, and have 1 and 4 different commits each, respectively.
+      found=re.search('.*and have (\d+) and (\d+) different commits each.*', o)
+      # print('▲{:3}▼{:3}'.format(found.group(1), found.group(2)))
+      out=BOLD_CYAN+'▲'+found.group(1)+BOLD_PURPLE+'▼'+found.group(2)+NC
+    elif 'You are currently rebasing branch' in o:
+      out=BOLD_RED+'‽'+NC
+    return out
+  except AttributeError:
+    print('behind or ahead count parse error')
+
+
+
+
+exec_script_path=os.path.dirname(os.path.realpath(__file__))
+# print(exec_script_path)
+# repo_home=os.path.abspath(os.getcwd()) if len(sys.argv) <= 1 else sys.argv[1]
+repo_home=args.repobase if args.repobase else os.path.abspath(os.getcwd())
+# print(repo_home)
+
+
+
+
+
+
+#
+# loop base dir to detect projects, initialize subprocesses for getting branch name, stash, fetch, rebase, stash pop, stat per project
+#
+projects_names = {}
+i=0
+
+processes_for_branch_names = {}
+outputs_for_branch_names = {}
+
+processes_for_fetch = {}
+outputs_for_fetch = {}
+
+processes_for_stash = {}
+outputs_for_stash = {}
+
+processes_for_rebase = {}
+outputs_for_rebase = {}
+
+processes_for_stash_pop = {}
+outputs_for_stash_pop = {}
+
+sys.stdout.write('detecting projects: ')
+sys.stdout.flush()
+for root, sub_folders, files in os.walk(repo_home):
+  for sub_folder in sorted(sub_folders):
+    sub_path=os.path.join(root, sub_folder)
+    git_atr_path=os.path.join(sub_path, ".git")
+    if os.path.exists(git_atr_path):
+      # currentPath='loading repos: '+sub_path
+      # sys.stdout.write('\r{}{}'.format(currentPath, ' '*(int(columns)-len(currentPath))))
+      # sys.stdout.flush()
+
+
+
+      #branch_name=parse_process_output('git --git-dir='+git_atr_path+' rev-parse --abbrev-ref HEAD')['out'].rstrip('\n')
+      processes_for_branch_names[i] = start_process('git --git-dir='+git_atr_path+' rev-parse --abbrev-ref HEAD')
+      outputs_for_branch_names[i] = []
+
+
+
+      if args.withfetch is True or args.withrebase is True:
+        processes_for_fetch[i] = start_process('git --git-dir='+git_atr_path+' fetch upstream $(git --git-dir='+git_atr_path+' rev-parse --abbrev-ref HEAD)')
+
+
+
+      if args.withrebase is True:
+        processes_for_stash[i] = start_process('git --git-dir='+git_atr_path+' stash')
+        processes_for_rebase[i] = start_process('git --git-dir='+git_atr_path+' rebase upstream/$(git --git-dir='+git_atr_path+' rev-parse --abbrev-ref HEAD)')
+        processes_for_stash_pop[i] = start_process('git --git-dir='+git_atr_path+' stash pop')
+
+
+
+      projects_names[i] = sub_folder
+      i+=1
+      loadedHint = str(i) + ' projects found'
+      sys.stdout.write('{}\033[{}D'.format(loadedHint, len(loadedHint)))
+      sys.stdout.flush()
+      # time.sleep(0.5)
+sys.stdout.write('\n\n')
+# sys.stdout.write('\033[{}A\r'.format(1))
+# sys.stdout.write('\rprojects loaded successfully\nidentifying branch names per project...\n')
+# sys.stdout.flush()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
+# loop to parse subprocesses output, until all subprocess done
+#
+loop_count = 0
+i = 0
+statisticOut = ''     #multiple lines with project names, branch names and statistics
+statisticOutput = {}  #a line with project name, branch name and statistic
+try:
+  while True:
+
+    # print('-------------------------------------------\n\n\n'+repr(blink_color_for_initializing))
+    if statisticOut == '':
+      for i in projects_names:
+        statisticOutput[i] = '{:60} {:40} {} {}\n'.format(projects_names[i], '<color_place_holder>'+'?'+NC, '<color_place_holder>'+'?'+NC, '<color_place_holder>'+'?'+NC)
+
+
+    # blink between black and gray color for unchecked projects
+    current_color = LIGHT_GRAY if loop_count % 2 == 0 else LIGHT_BLACK
+    loop_count += 1
+
+    statisticOut = "".join(statisticOutput.values()).replace('<color_place_holder>', current_color)
+    sys.stdout.write('{}\033[{}A\r'.format(statisticOut, statisticOut.count('\n')))
+    time.sleep(0.5)
+
+
+
+    # print(len(processes_for_branch_names))
+    for i in processes_for_branch_names:
+      outputs_for_branch_names[i] = processes_for_branch_names[i].stdout.readline().rstrip('\n')
+      if outputs_for_branch_names[i]:
+        project_name = projects_names[i]
+        branch_name = outputs_for_branch_names[i]
+        statisticOutput[i] = '{:60} {:40} {} {}\n'.format(project_name, branch_name, '<color_place_holder>'+'?'+NC, '<color_place_holder>'+'?'+NC)
+
+
+
+#       #exec('git branch --set-upstream-to=upstream/$(git rev-parse --abbrev-ref HEAD)')
+
+
+
+        stat_stash=' '
+        if args.withfetch is True or args.withrebase is True:
+          res=parse_process_output(processes_for_stash[i])
+          if res['cod'] == "0":
+            stat_stash=LIGHT_GREEN+ACT_SYMBOL+NC
+            if "No local changes to save" in res['out']:
+              stat_stash=LIGHT_GRAY+ACT_SYMBOL+NC
+          else:
+            stat_stash=LIGHT_RED+ACT_SYMBOL+NC
+          statisticOutput[i] = '{:60} {:40} {} {}\n'.format(project_name, branch_name, stat_stash, '<color_place_holder>'+'?'+NC)
+
+
+
+        stat_fetch=' '
+        if args.withfetch is True or args.withrebase is True:
+          res=parse_process_output(processes_for_fetch[i])
+          # print('\n\n\n'+project_name)
+          # print('>>>' + res['cod'] + '<<<')
+          # print('>>>' + res['out'] + '<<<')
+          # print('>>>' + res['err'] + '<<<')
+          if res['cod'] == "0":
+            stat_fetch=LIGHT_GREEN+ACT_SYMBOL+NC
+          else:
+            stat_fetch=LIGHT_RED+ACT_SYMBOL+NC
+          statisticOutput[i] = '{:60} {:40} {} {}\n'.format(project_name, branch_name, stat_stash + ' ' + stat_fetch, '<color_place_holder>'+'?'+NC)
+
+
+
+        stat_rebase=' '
+        if args.withrebase is True:
+          res = parse_process_output(processes_for_rebase[i])
+          # print('\n\n\n'+project_name)
+          # print('>>>' + res['cod'] + '<<<')
+          # print('>>>' + res['out'] + '<<<')
+          # print('>>>' + res['err'] + '<<<')
+          if res['cod'] == "0":
+            stat_rebase=LIGHT_GREEN+ACT_SYMBOL+NC
+          else:
+            stat_rebase=LIGHT_RED+ACT_SYMBOL+NC
+          statisticOutput[i] = '{:60} {:40} {} {}\n'.format(project_name, branch_name, stat_stash + ' ' + stat_fetch + ' ' + stat_rebase, '<color_place_holder>'+'?'+NC)
+
+
+
+        #exec('git push origin $(git rev-parse --abbrev-ref HEAD) -f')
+
+
+
+        stat_stash_pop=' '
+        if args.withrebase is True:
+          res=parse_process_output(processes_for_stash_pop[i])
+          if res['cod'] == "0":
+            stat_stash_pop=LIGHT_GREEN+ACT_SYMBOL+NC
+          elif res['cod'] == "1":                     #[1] No stash entries found.
+            stat_stash_pop=LIGHT_GRAY+ACT_SYMBOL+NC
+          else:                                       #[128] untracked working tree files would be overwritten by merge, aborting...
+            stat_stash_pop=LIGHT_RED+ACT_SYMBOL+NC
+          statisticOutput[i] = '{:60} {:40} {} {}\n'.format(project_name, branch_name, stat_stash + ' ' + stat_fetch + ' ' + stat_rebase + ' ' + stat_stash_pop, '<color_place_holder>'+'?'+NC)
+
+
+
+    all_subprocess_done = True
+    for i in outputs_for_branch_names:
+      if outputs_for_branch_names[i] or processes_for_branch_names[i].poll() is None:
+        all_subprocess_done = False
+    if all_subprocess_done == True:
+      sys.stdout.write('\033[{}B\r'.format(statisticOut.count('\n')))
+      break
+except KeyboardInterrupt:
+  sys.stdout.write('\033[{}B\r'.format(statisticOut.count('\n')))
+  sys.exit()
+
+# statisticOut = "".join(statisticOutput.values())
+# sys.stdout.write(statisticOut)
+
+
+
+# try:
+#   while True:
+#     if statisticOut == '':
+#       statisticOut = "".join(statisticOutput.values())
+
+#     # blink between black and gray color for unchecked projects
+#     if LIGHT_BLACK in statisticOut:
+#       statisticOut = statisticOut.replace(LIGHT_BLACK, LIGHT_GRAY)
+#     elif LIGHT_GRAY in statisticOut:
+#       statisticOut = statisticOut.replace(LIGHT_GRAY, LIGHT_BLACK)
+
+#     sys.stdout.write('{}\033[{}A\r'.format(statisticOut, statisticOut.count('\n')))
+#     time.sleep(0.5)
+# except KeyboardInterrupt:
+#   sys.stdout.write('\033[{}B\r'.format(statisticOut.count('\n')))
+#   sys.exit()
+
+
+sys.exit()
+
+
+
+
+# for root, sub_folders, files in os.walk(repo_home):
+#   for sub_folder in sorted(sub_folders):
+#     sub_path=os.path.join(root, sub_folder)
+#     if os.path.exists(os.path.join(sub_path, ".git")):
+#       # print(sub_path)
+#       os.chdir(sub_path)
+
+#       branch_name=exec('git rev-parse --abbrev-ref HEAD')['out'].rstrip('\n')
+
+
+
+#       #exec('git branch --set-upstream-to=upstream/$(git rev-parse --abbrev-ref HEAD)')
+
+
+
+#       stat_stash=' '
+#       if args.withfetch is True or args.withrebase is True:
+#         res=exec('git stash')
+#         if res['cod'] == "0":
+#           stat_stash=LIGHT_GREEN+ACT_SYMBOL+NC
+#           if "No local changes to save" in res['out']:
+#             stat_stash=LIGHT_GRAY+ACT_SYMBOL+NC
+#         else:
+#           stat_stash=LIGHT_RED+ACT_SYMBOL+NC
+
+#       stat_pull=' '
+#       if args.withrebase is True:
+#         if exec('git pull --rebase upstream $(git rev-parse --abbrev-ref HEAD)')['cod'] == "0":
+#           stat_pull=LIGHT_GREEN+ACT_SYMBOL+NC
+#         else:
+#           stat_pull=LIGHT_RED+ACT_SYMBOL+NC
+
+#       #exec('git push origin $(git rev-parse --abbrev-ref HEAD) -f')
+
+#       stat_stash_pop=' '
+#       if args.withrebase is True:
+#         res=exec('git stash pop')
+#         if res['cod'] == "0":
+#           stat_stash_pop=LIGHT_GREEN+ACT_SYMBOL+NC
+#         elif res['cod'] == "1":                     #[1] No stash entries found.
+#           stat_stash_pop=LIGHT_GRAY+ACT_SYMBOL+NC
+#         else:                                       #[128] untracked working tree files would be overwritten by merge, aborting...
+#           stat_stash_pop=LIGHT_RED+ACT_SYMBOL+NC
+      
+#       symbol_for_sync=stat_stash+' '+stat_pull+' '+stat_stash_pop
+
+
+
+#       stat_status=get_stat_by_git_status()
+
+
+
+#       has_not_committed_changes=False
+#       if exec('git status --porcelain')['out']:
+#         has_not_committed_changes=True
+#         stat_status=stat_status+'\t'+BOLD_YELLOW+'^'+NC
+#       else:
+#         has_not_committed_changes=False
+
+
+
+#       sys.stdout.write('{:60} {:40} {} {}\n'.format(sub_folder, branch_name, symbol_for_sync, stat_status))  #ᐃᐱ
+
+
+
+#         # sys.stdout.write('{:60} {:40} {} {}\n'.format(sub_folder, branch_name, stat_status, BOLD_YELLOW+'^'+NC))  #ᐃᐱ
+#         # # printf "\n%60s %40s %-30s %b%1s%b %-19s" "$(basename $repo)" "${BARNCH_NAME}" "${GIT_STATUS}" "${BOLD_RED}" "x" "${NC}" "Uncommitted Changes"
+
+#         # sys.stdout.write('{:60} {:40} {}\n'.format(sub_folder, branch_name, stat_status))
+#         # # printf "\n%60s %40s %-30s"               "$(basename $repo)" "${BARNCH_NAME}" "${GIT_STATUS}"
+
+#   #   print(os.path.join(root, sub_folder))
+#   # for file in files:
+#   #   print(os.path.join(root, file))
+#   break
+
+
+# os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
