@@ -1,0 +1,158 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time, random, datetime
+import numpy
+
+def wait_element_loaded(browser, xpath):
+    WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.XPATH, xpath))
+    )
+
+
+
+
+
+# param: xpath for items in section to click
+def get_two_links_in_section(browser, xpath):
+    res = []
+
+    try:
+        wait_element_loaded(browser, xpath)
+        elements = browser.find_elements_by_xpath(xpath)
+
+        list = range(0, len(elements) - 1)
+        idxs_links = random.sample(list, 2)
+
+        for idx in idxs_links:
+            # elements[idx].click()
+            # time.sleep(1)
+            res.append(elements[idx])
+
+        # i = 0
+        # for ele in elements:
+        #     # print(ele.get_atribute('href'))
+        #     ele.click()
+
+        #     i += 1
+        #     if i == 2:
+        #         break
+    finally:
+        print('')
+    #     time.sleep(10)
+    #     browser.quit()
+
+    return res
+
+def simulate_manual_scroll(browser):
+    current_height = 0
+    total_height = browser.execute_script('return action=document.body.scrollHeight')
+    # for i in range(0, total_height, random.uniform(1, 300)):
+    for i in numpy.arange(0, total_height, random.uniform(1, 300)):
+        # random.seed()
+        # time.sleep(random.randint(0, 3))
+        time.sleep(random.uniform(0, 3))
+        browser.execute_script('window.scrollTo(0, %s)' % (i))
+        current_height += i
+        if current_height > total_height * 0.8:
+            break
+        
+
+
+
+# driver_path = 'C:\D\por\chromedriver.94.0.4606.41'
+# browser = webdriver.Chrome(executable_path=driver_path)
+browser = webdriver.Chrome()
+
+# options = webdriver.ChromeOptions()
+# options.add_argument(r'user-data-dir=C:\Users\will\AppData\Local\Google\Chrome\User Data')
+# browser = webdriver.Chrome(options=options)
+
+# options = webdriver.ChromeOptions()
+# options.add_argument(r'user-data-dir=C:\Users\Will\AppData\Local\Microsoft\Edge\User Data')
+# browser = webdriver.Edge(options=options)
+
+
+# options.add_argument('disable-infobars')
+
+url = 'https://www.xuexi.cn/'
+#url = 'https://pc.xuexi.cn/points/my-points.html'
+#url = 'https://www.xuexi.cn/xxqg.html?id=d6cf0ec34e5c41afbbd5fa99fdf90c7a'
+browser.get(url)	#open browser
+
+# time.sleep(20)    #hold for manual logon
+
+
+
+# browser.maximize_window()
+first_tab = browser.current_window_handle
+# sys.exit()
+
+
+
+# top lines
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[1]/div[1]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[1]/div[2]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[2]/div[1]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[2]/div[2]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[3]/div[1]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[3]/div[2]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[4]/div[1]/div/div/div/span
+# //*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[4]/div[2]/div/div/div/span
+top_lines_links = get_two_links_in_section(browser, '//*[@id="d6df"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[*]/div[*]/div/div/div/span')
+
+# important news
+# //*[@id="231c"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[1]/div[1]/div/div/div/span
+# //*[@id="231c"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[2]/div[8]/div/div/div/span
+important_news_links = get_two_links_in_section(browser, '//*[@id="231c"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[*]/div[*]/div/div/div/span')
+
+# study review
+study_review_links = get_two_links_in_section(browser, '//*[@id="f657"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[*]/div[*]/div/div/div/span')
+
+# comprehensive news
+comprehensive_news_links = get_two_links_in_section(browser, '//*[@id="4d3a"]/div/div/div/div/div/section/div/div/div/div/div[2]/section/div/div/div/div[*]/div[*]/div/div/div/span')
+
+
+
+# browser.execute_script('window.scrollTo(150, 7000)')
+# study TV
+# //*[@id="1018"]/div/div/div/div/div/section/section/div/div/section/div[1]/div/div/div[1]/span/div
+# //*[@id="1018"]/div/div/div/div/div/section/section/div/div/section/div[2]/div/div/div[1]/span/div
+# //*[@id="1018"]/div/div/div/div/div/section/section/div/div/section/div[3]/div/div/div[1]/span/div
+# //*[@id="1018"]/div/div/div/div/div/section/section/div/div/section/div[4]/div/div/div[1]/span/div
+study_tv_important_links = get_two_links_in_section(browser, '//*[@id="1018"]/div/div/div/div/div/section/section/div/div/section/div[*]/div/div/div[*]/span/div')
+# study_tv_topic_links = get_two_links_in_section(browser, '//*[@id="f2f1"]/div/div/div/div/div/section/section/div/div/section/div[*]/div/div/div[*]/span/div')
+
+# all_items_links = top_lines_links + important_news_links + study_review_links + comprehensive_news_links
+# all_items_links = all_items_links + study_tv_important_links + study_tv_topic_links
+all_items_links = study_tv_important_links + study_tv_topic_links
+list = range(0, len(all_items_links) - 1)
+idxs_links = random.sample(list, 6)
+for idx in idxs_links:
+    item_links = all_items_links[idx]
+    browser.execute_script("arguments[0].scrollIntoView();", item_links)
+    item_links.click()
+
+    all_tabs = browser.window_handles
+    for tab in all_tabs:
+        if tab != first_tab:
+            browser.switch_to.window(tab)
+
+    # first paragraph: 
+    wait_element_loaded(browser, '//*[@id="root"]/div/section/div/div/div/div/div[2]/section/div/div/div/div/div/div/div[3]/div[1]/p[1]')
+    simulate_view_start_time = datetime.datetime.now()
+    simulate_manual_scroll(browser)
+    simulate_view_end_time = datetime.datetime.now()
+    simulate_view_duration = (simulate_view_end_time - simulate_view_start_time).seconds
+    if simulate_view_duration < 60:
+        time.sleep(random.randint(60, 66) - simulate_view_duration)
+    browser.close()
+
+    browser.switch_to.window(first_tab)
+    # break
+
+
+#browser.implicitly_wait(10)
+#time.sleep(2)
+
