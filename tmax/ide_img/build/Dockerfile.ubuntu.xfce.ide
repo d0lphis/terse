@@ -1,0 +1,22 @@
+FROM danchitnis/xrdp:ubuntu-xfce
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# && wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome-stable_current_amd64.deb && apt-get install -y /tmp/google-chrome-stable_current_amd64.deb && rm -rf /tmp/google-chrome-stable_current_amd64.deb \
+RUN apt-get update -y \
+ && apt-get install -y build-essential && apt-get install -y sudo wget curl vim python-is-python3 git nginx \
+ && curl -L https://edgedl.me.gvt1.com/edgedl/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/google-chrome-stable_current_amd64.deb && apt-get install -y /tmp/google-chrome-stable_current_amd64.deb && rm -rf /tmp/google-chrome-stable_current_amd64.deb \
+ && export appDir=/apps && mkdir $appDir \
+ && printf '#!/bin/sh\n/opt/google/chrome/chrome --disable-dev-shm-usage' > $appDir/chrome.sh && chmod +x $appDir/chrome.sh \
+ && printf '#!/bin/sh\n/usr/wks/por/visual-studio-code/code' > $appDir/code.sh && chmod +x $appDir/code.sh \
+ && printf '#!/bin/sh\n/usr/wks/por/dbeaver/dbeaver' > $appDir/dbeaver.sh && chmod +x $appDir/dbeaver.sh \
+ && apt-get install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools && printf '#!/bin/sh\n /usr/wks/por/p4v/p4merge' > $appDir/p4merge.sh && chmod +x $appDir/p4merge.sh && printf '#!/bin/sh\n /usr/wks/por/p4v/p4v' > $appDir/p4v.sh && chmod +x $appDir/p4v.sh \
+ && printf '\nexport NVM_DIR="/usr/wks/kode/locnvm/nvm"\n[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm\n[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion\n' >> /root/.bashrc \
+ && apt-get update -y && apt-get upgrade -y && apt-get autoremove -y && apt-get autoclean && rm -rf /var/cache/apt /var/lib/apt/lists && apt-get --purge autoremove && rm -rf /tmp/* \
+ && sed -i 's|max_bpp=32|max_bpp=128\nxserverbpp=128\ncrypt_level=low\nuse_compression=yes|g' /etc/xrdp/xrdp.ini
+
+COPY ./run.sh /
+
+EXPOSE 3389
+
+ENTRYPOINT ["/run.sh"]
